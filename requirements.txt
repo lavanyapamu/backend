@@ -1,0 +1,6 @@
+# Add your dependencies here
+flask
+flask_sqlalchemy
+flask_restx
+flask_marshmallow
+python-dotenv
