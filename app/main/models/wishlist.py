@@ -18,11 +18,12 @@ class Wishlist(db.Model):
         return f"<Wishlist {self.wishlist_id} - User {self.user_id} - Artwork {self.artwork_id}>"
 
 
-def to_dict(self):
-    return {
-        "wishlist_id": self.wishlist_id,
-        "user_id": str(self.user_id),
-        "artwork_id": str(self.artwork_id),
-        "price": self.price,
-        "added_at": self.added_at.isoformat()
-    }
+    def to_dict(self):
+        return {
+            "wishlist_id": self.wishlist_id,
+            "user_id": str(self.user_id),
+            "artwork_id": str(self.artwork_id),
+            "price": self.price,
+            "added_at": self.added_at.isoformat(),
+            "artwork": self.artwork.to_dict() if self.artwork else None
+        }

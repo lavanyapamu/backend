@@ -25,7 +25,8 @@ class ArtworkList(Resource):
         # request.form.to_dict()
         files = request.files
         return add_artwork(artist_id, data, files)
-
+    
+   
     def get(self):
         search = request.args.get("search")
         category = request.args.get("category")
@@ -47,6 +48,7 @@ class ArtworkList(Resource):
 
 @artwork_ns.route("/<string:artwork_id>")
 class ArtworkById(Resource):
+    @jwt_required()
     def get(self, artwork_id):
         return get_artwork_by_id(artwork_id)
 
@@ -68,5 +70,6 @@ class ArtworkById(Resource):
 @artwork_ns.route("/artist/<string:artist_id>")
 class ArtworksByArtist(Resource):
     @cross_origin(origins="http://localhost:4200", supports_credentials=True)
+    @jwt_required() 
     def get(self, artist_id):
         return get_artworks_by_artist(artist_id)

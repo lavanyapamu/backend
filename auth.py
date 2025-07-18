@@ -1,12 +1,10 @@
-# app/main/controllers/auth.py
+
 from flask import Blueprint, request, jsonify, current_app as app
 from sqlalchemy import or_
 from app.main.models.user import User
 from app.main.models.roles import Role
 from init_db import db
-from flask_bcrypt import Bcrypt
-import jwt
-import datetime
+from datetime import timedelta
 from init_db import mail, bcrypt
 from flask_mail import Message
 from itsdangerous import SignatureExpired, BadSignature
@@ -97,10 +95,12 @@ def login():
         return jsonify({'message': 'Please verify your email before logging in'}), 403
 
     
-    access_token = create_access_token(identity={
+    access_token = create_access_token(
+        identity={
         'user_id': str(user.user_id),
         'role_id': user.role_id,
-    })
+        
+    }, expires_delta=timedelta(days=30) )
     print(access_token)
   
     return jsonify({
@@ -129,3 +129,64 @@ def verify_email(token):
     db.session.commit()
     return jsonify({'message': 'Email verified'}), 200
 
+
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity, get_jwt
+from datetime import timedelta
+
+@auth_bp.route('/forgot-password', methods=['POST'])
+def forgot_password():
+    data = request.get_json()
+    email = data.get('email')
+
+    if not email:
+        return jsonify({'message': 'Email is required'}), 400
+
+    user = User.query.filter_by(email=email).first()
+    if not user:
+        return jsonify({'message': 'User not found with this email'}), 404
+
+    # Generate reset token
+    token = create_access_token(
+        identity=email,
+        expires_delta=timedelta(minutes=36000),
+        additional_claims={"reset": True}
+    )
+
+    reset_link = f"{app.config['FRONTEND_URL']}/reset-password?token={token}"
+
+    # Send reset email
+    msg = Message(
+        subject='Reset Your Password - ArtFlare',
+        sender=app.config['MAIL_USERNAME'],
+        recipients=[email],
+        body=f'Hi {user.full_name},\n\nClick the link below to reset your password:\n{reset_link}\n\nThis link is valid for 15 minutes.'
+    )
+    mail.send(msg)
+
+    return jsonify({'message': 'Password reset link has been sent to your email.'}), 200
+
+
+
+@auth_bp.route('/reset-password', methods=['POST'])
+@jwt_required()
+def reset_password():
+    jwt_data = get_jwt()
+    if not jwt_data.get("reset"):
+        return jsonify({'message': 'Invalid reset token'}), 401
+
+    email = get_jwt_identity()
+    user = User.query.filter_by(email=email).first()
+
+    if not user:
+        return jsonify({'message': 'User not found'}), 404
+
+    data = request.get_json()
+    new_password = data.get('password')
+
+    if not new_password:
+        return jsonify({'message': 'New password is required'}), 400
+
+    user.password = generate_password_hash(new_password)
+    db.session.commit()
+
+    return jsonify({'message': 'Password reset successful'}), 200

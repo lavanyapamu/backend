@@ -42,5 +42,6 @@ class Artwork(db.Model):
             "sales_count": self.sales_count,
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "image": self.art_image,
             "is_deleted": self.is_deleted
         }

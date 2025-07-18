@@ -11,7 +11,7 @@ class User(db.Model):
     email = db.Column(db.String(256), nullable=False, unique=True)
     phone_number = db.Column(db.String(15), unique=True, nullable=True)
     role_id = db.Column(db.SmallInteger, db.ForeignKey('roles.role_id'), nullable=False)
-    profile_image = db.Column(db.LargeBinary, nullable=True) 
+    profile_image = db.Column(db.String(255), nullable=True) 
     earnings = db.Column(db.Float, default=0.00)
     status=db.Column(db.Enum(Userstatus), nullable=False, default=Userstatus.pending)
     is_deleted = db.Column(db.Boolean, nullable=False, default=False)
@@ -32,7 +32,7 @@ class User(db.Model):
     def __repr__(self):
      return f"<User {self.user_id} - {self.email} - {self.status.value}>"
 
-def to_dict(self):
+    def to_dict(self):
         return {
             "user_id": str(self.user_id),
             "full_name": self.full_name,
@@ -44,5 +44,7 @@ def to_dict(self):
             "is_deleted": self.is_deleted,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "profile_image": self.profile_image
+
             # Excluding profile_image and password for privacy and performance
         }

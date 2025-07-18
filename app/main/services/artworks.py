@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+import uuid
 from app.main.models.artworks import Artwork, CategoryName, StyleType
 from app.main.models.user import User
 from init_db import db
@@ -9,7 +10,7 @@ from flask import request
 
 
 
-UPLOAD_FOLDER = '/home/lavanya/Desktop/ARTFLARE/frontend/src/assets/artworks' 
+UPLOAD_FOLDER = '/home/lavanya/Desktop/ArtFlare/static/uploads' 
 
 def add_artwork(artist_id, data, files):
     required_fields = ['title', 'description', 'category_name', 'style', 'price', 'quantity']
@@ -170,19 +171,11 @@ def soft_delete_artwork(artwork_id, artist_id):
 
 
 def get_artworks_by_artist(artist_id):
-    artworks = Artwork.query.filter_by(artist_id=artist_id, is_deleted=False).all()
+    try:
+        artist_id = uuid.UUID(artist_id)   
+    except ValueError:
+        return {"error": "Invalid artist_id"}, 400
+    artworks= Artwork.query.filter_by(artist_id=artist_id, is_deleted=False).all()
 
-    return [
-        {
-            "artwork_id": str(a.artwork_id),
-            "title": a.title,
-            "category": a.category_name.name if a.category_name else None,
-            "style": a.style.name if a.style else None,
-            "price": a.price,
-            "quantity": a.quantity,
-            "image": a.art_image,  # Just filename
-            "created_at": a.created_at.isoformat(),
-            "updated_at": a.updated_at.isoformat(),
-        }
-        for a in artworks
-    ], 200
+    return [a.to_dict() for a in artworks], 200
+   
