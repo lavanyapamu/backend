@@ -1,38 +1,48 @@
 from app.main.models.payments import Payment
 from init_db import db
-from app.main.utils.enums import PaymentStatus
+from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 
-def create_payment(data):
+def create_payment(order_id, amount, method, status):
     try:
-        payment = Payment(
-            order_id=data["order_id"],
-            user_id=data["user_id"],
-            amount=data["amount"],
-            payment_method=data["payment_method"],
-            status=PaymentStatus.success  # Modify for real integration/payment gateway status
+        new_payment = Payment(
+            order_id=order_id,
+            amount=amount,
+            method=method,
+            status=status,
+            payment_date=datetime.utcnow()
         )
-        db.session.add(payment)
+        db.session.add(new_payment)
         db.session.commit()
-        return payment.to_dict(), 201
+        return new_payment.to_dict(), 201
     except SQLAlchemyError as e:
         db.session.rollback()
-        return {"message": str(e)}, 500
+        return {"error": f"Failed to create payment: {str(e)}"}, 500
 
 def get_all_payments():
-    payments = Payment.query.all()
-    return [payment.to_dict() for payment in payments], 200
+    try:
+        payments = Payment.query.all()
+        return [payment.to_dict() for payment in payments], 200
+    except SQLAlchemyError as e:
+        return {"error": f"Failed to fetch payments: {str(e)}"}, 500
 
 def get_payment_by_id(payment_id):
-    payment = Payment.query.get(payment_id)
-    if not payment:
-        return {"message": "Payment not found"}, 404
-    return payment.to_dict(), 200
+    try:
+        payment = Payment.query.get(payment_id)
+        if not payment:
+            return {"error": "Payment not found"}, 404
+        return payment.to_dict(), 200
+    except SQLAlchemyError as e:
+        return {"error": f"Failed to fetch payment: {str(e)}"}, 500
 
 def delete_payment(payment_id):
-    payment = Payment.query.get(payment_id)
-    if not payment:
-        return {"message": "Payment not found"}, 404
-    db.session.delete(payment)
-    db.session.commit()
-    return {"message": "Payment deleted successfully"}, 200
+    try:
+        payment = Payment.query.get(payment_id)
+        if not payment:
+            return {"error": "Payment not found"}, 404
+        db.session.delete(payment)
+        db.session.commit()
+        return {"message": "Payment deleted successfully"}, 200
+    except SQLAlchemyError as e:
+        db.session.rollback()
+        return {"error": f"Failed to delete payment: {str(e)}"}, 500

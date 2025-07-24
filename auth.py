@@ -70,7 +70,7 @@ def register():
 
 
 @auth_bp.route('/login', methods=['POST'])
-@cross_origin(origin='http://localhost:4200', supports_credentials=True)
+
 
 def login():
     data = request.get_json()
@@ -112,7 +112,7 @@ def login():
 
 
 @auth_bp.route('/emailverify/<token>', methods=['GET'])
-@cross_origin(origin='http://localhost:4200', supports_credentials=True)
+
 def verify_email(token):
     try:
         email =  get_serializer().loads(token, salt='email-confirm', max_age=36000000)  # 11 hour valid

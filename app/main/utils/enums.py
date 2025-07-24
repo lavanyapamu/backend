@@ -9,6 +9,7 @@ class Userstatus(Enum):
 
 class Orderstatus(Enum):
     pending = 'pending'
+    confirmed='confirmed'
     shipped = 'shipped'
     delivered= 'delivered'
     cancelled= 'cancelled'
@@ -20,11 +21,6 @@ class PaymentStatus(Enum):
     failed = 'failed'
     refunded = 'refunded'
     cancelled = 'cancelled'
-
-# class RoleName(Enum):
-#     artist = "artist"
-#     buyer = "buyer"
-#     admin = "admin"
   
 class CategoryName(Enum):
     drawing = "drawing"

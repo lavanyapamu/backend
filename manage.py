@@ -19,7 +19,7 @@ def create_app():
    
     app = Flask(__name__,  static_folder='static', static_url_path='/static')
     app.config.from_object(Config)
-    CORS(app, resources={r"/api/*": {"origins": "*"}}, supports_credentials=True) 
+    CORS(app, origins=["http://localhost:4200"], supports_credentials=True)
     db.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)

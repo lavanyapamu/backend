@@ -24,7 +24,7 @@ class User(db.Model):
     artworks = db.relationship("Artwork", back_populates="artist", lazy=True)
     orders = db.relationship("Order", back_populates="user", lazy=True)
     orders = db.relationship("Order", back_populates="user", lazy=True)
-    payments = db.relationship("Payment", back_populates="user", lazy=True)
+    # payments = db.relationship("Payment", back_populates="user", lazy=True)
     reviews = db.relationship("Review", back_populates="user", lazy=True)
     cart= db.relationship("Cart", back_populates="user", lazy=True)
     wishlist= db.relationship("Wishlist", back_populates="user", lazy=True)

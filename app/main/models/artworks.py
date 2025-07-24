@@ -25,6 +25,8 @@ class Artwork(db.Model):
     
     artist = db.relationship('User', back_populates='artworks')
     reviews = db.relationship("Review", back_populates="artwork", lazy=True)
+    order_items = db.relationship("OrderItem", back_populates="artwork")
+
 
     def __repr__(self):
         return f"<Artwork {self.title} by {self.artist_id}>"
@@ -33,6 +35,7 @@ class Artwork(db.Model):
         return {
             "artwork_id": str(self.artwork_id),
             "artist_id": str(self.artist_id),
+            "artist_name":self.artist.full_name,
             "title": self.title,
             "description": self.description,
             "category_name": self.category_name.value,
