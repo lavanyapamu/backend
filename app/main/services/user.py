@@ -18,7 +18,7 @@ def get_user_by_id(current_user_id, user_id, current_user_role):
         user = User.query.get(user_id)
         if not user or user.is_deleted:
             return None
-        return user
+        return user.to_dict()
     return None
 
 

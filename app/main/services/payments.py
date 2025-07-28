@@ -3,13 +3,25 @@ from init_db import db
 from datetime import datetime
 from sqlalchemy.exc import SQLAlchemyError
 
-def create_payment(order_id, amount, method, status):
+def create_payment(data):
     try:
         new_payment = Payment(
-            order_id=order_id,
-            amount=amount,
-            method=method,
-            status=status,
+            user_id=data['user_id'],
+            order_id=data['order_id'],
+            full_name=data['full_name'],
+            email=data['email'],
+            phone_number=data['phone_number'],
+            city=data['city'],
+            state=data['state'],
+            country=data['country'],
+            pincode=data['pincode'],
+            upi_id=data.get('upi_id'),  # Only included if UPI is used
+            shipping_fee=data.get('shipping_fee', 0.00),
+            subtotal=data['subtotal'],
+            total=data['total'],
+            wallet=data.get('wallet', 0.00),
+            payment_method=data['payment_method'],
+            status=data.get('status', 'pending'),  # Default fallback
             payment_date=datetime.utcnow()
         )
         db.session.add(new_payment)

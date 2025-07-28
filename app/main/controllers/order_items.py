@@ -9,7 +9,7 @@ from app.main.services.order_items import (
 
 api = OrderItemDTO.api
 
-@api.route('/<int:order_id>')
+@api.route('/<uuid:order_id>')
 class OrderItemsByOrder(Resource):
     def get(self, order_id):
         return get_order_items_by_order(order_id)

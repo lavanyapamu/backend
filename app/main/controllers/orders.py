@@ -15,23 +15,27 @@ api = OrderDTO.api
 class OrderList(Resource):
     def post(self):
         data = request.get_json()
-        return create_order(user_id=data['user_id'], total_price=data['total_price'])
+        return create_order(
+            user_id=data['user_id'],
+            total_price=data['total_price']
+        )
 
 @api.route('/user/<uuid:user_id>')
 class UserOrders(Resource):
     def get(self, user_id):
         return get_orders_by_user(user_id)
 
-@api.route('/<int:order_id>')
+@api.route('/<uuid:order_id>')
 class OrderDetail(Resource):
     def get(self, order_id):
-        return get_order_by_id(order_id)
+        user_id = request.args.get('user_id')
+        return get_order_by_id(order_id, user_id)
 
     def delete(self, order_id):
         user_id = request.args.get('user_id')
         return delete_order(order_id, user_id)
 
-@api.route('/<int:order_id>/status')
+@api.route('/<uuid:order_id>/status')
 class OrderStatus(Resource):
     def put(self, order_id):
         data = request.get_json()

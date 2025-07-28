@@ -1,10 +1,10 @@
-# models/order_items.py
 from init_db import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 class OrderItem(db.Model):
     __tablename__ = 'order_items'
+
     order_item_id = db.Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     order_id = db.Column(UUID(as_uuid=True), db.ForeignKey('orders.order_id'), nullable=False)
     artwork_id = db.Column(UUID(as_uuid=True), db.ForeignKey('artworks.artwork_id'), nullable=False)
@@ -16,7 +16,7 @@ class OrderItem(db.Model):
 
     def to_dict(self):
         return {
-            "id": str(self.order_item_id),
+            "order_item_id": str(self.order_item_id),
             "order_id": str(self.order_id),
             "artwork_id": str(self.artwork_id),
             "quantity": self.quantity,

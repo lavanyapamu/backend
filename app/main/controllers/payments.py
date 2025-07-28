@@ -17,12 +17,12 @@ class PaymentList(Resource):
 
     def post(self):
         data = request.get_json()
-        return create_payment(
-            order_id=data['order_id'],
-            amount=data['amount'],
-            method=data['method'],
-            status=data['status']
-        )
+
+        # Accept only upi, wallet, cod as valid payment_method
+        if data.get('payment_method') not in ['upi', 'wallet', 'cod']:
+            return {'error': 'Invalid payment method. Use upi, wallet, or cod.'}, 400
+
+        return create_payment(data)
 
 @api.route('/<uuid:payment_id>')
 class PaymentResource(Resource):

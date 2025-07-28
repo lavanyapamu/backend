@@ -13,14 +13,12 @@ def create_order(user_id, total_price):
         new_order = Order(
             user_id=user_id,
             total_price=total_price,
-            status=Orderstatus.pending,
-            order_date=datetime.utcnow(),
-            updated_at=datetime.utcnow()
+            status=Orderstatus.pending
         )
 
         db.session.add(new_order)
         db.session.commit()
-        return {"message": "Order created", "order_id": new_order.order_id}, 201
+        return {"message": "Order created", "order_id": str(new_order.order_id)}, 201
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Create Order Error: {str(e)}")
@@ -46,15 +44,15 @@ def get_order_by_id(order_id, user_id=None):
         return {"error": f"Failed to fetch order: {str(e)}"}, 500
 
 def update_order_status(order_id, new_status):
-    if new_status not in Orderstatus.__members__.values():
-        return {"error": "Invalid status"}, 400
-
-    order = Order.query.filter_by(order_id=order_id).first()
-    if not order:
-        return {"error": "Order not found"}, 404
+    if not isinstance(new_status, str) or new_status not in Orderstatus.__members__:
+        return {"error": f"Invalid status. Must be one of {list(Orderstatus.__members__.keys())}"}, 400
 
     try:
-        order.status = new_status
+        order = Order.query.filter_by(order_id=order_id).first()
+        if not order:
+            return {"error": "Order not found"}, 404
+
+        order.status = Orderstatus[new_status]
         order.updated_at = datetime.utcnow()
         db.session.commit()
         return {"message": "Order status updated"}, 200

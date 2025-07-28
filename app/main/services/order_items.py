@@ -1,5 +1,4 @@
 from app.main.models.order_items import OrderItem
-from app.main.models.artworks import Artwork
 from init_db import db
 from sqlalchemy.exc import SQLAlchemyError
 

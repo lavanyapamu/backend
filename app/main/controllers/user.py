@@ -47,8 +47,8 @@ class UserById(Resource):
         user = get_user_by_id(current_user_id, user_id, role_name)
         if not user:
             return {"error": "Not found or unauthorized"}, 404
-        print("📷 Backend sending image filename:", user.profile_image)
-        return user.to_dict(), 200
+        print("📷 Backend sending image filename:", user.get('profile_image'))
+        return user, 200
 
 
    @jwt_required()
