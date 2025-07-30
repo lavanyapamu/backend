@@ -24,6 +24,7 @@ def get_cart_items_by_user(user_id):
             # Get artwork details
             artwork = Artwork.query.filter_by(artwork_id=item.artwork_id, is_deleted=False).first()
             if artwork:
+                
                 item_dict = {
                     'cart_id': item.cart_id,
                     'user_id': str(item.user_id),
