@@ -27,6 +27,7 @@ class Order(db.Model):
     def to_dict(self):
         return {
             "order_id": str(self.order_id),
+            "user_name":self.user.full_name,
             "user_id": str(self.user_id),
             "total_price": self.total_price,
             "status": self.status.value,

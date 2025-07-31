@@ -23,7 +23,15 @@ def create_order(user_id, total_price):
         db.session.rollback()
         current_app.logger.error(f"Create Order Error: {str(e)}")
         return {"error": f"Failed to create order: {str(e)}"}, 500
-
+    
+def get_all_orders():
+    """Get all orders for artist dashboard"""
+    try:
+        orders = Order.query.order_by(Order.order_date.desc()).all()
+        return [order.to_dict() for order in orders], 200
+    except SQLAlchemyError as e:
+        return {"error": f"Failed to fetch all orders: {str(e)}"}, 500
+    
 def get_orders_by_user(user_id):
     try:
         orders = Order.query.filter_by(user_id=user_id).order_by(Order.order_date.desc()).all()

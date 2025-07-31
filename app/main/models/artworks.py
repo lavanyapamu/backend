@@ -35,6 +35,7 @@ class Artwork(db.Model):
         return {
             "artwork_id": str(self.artwork_id),
             "artist_id": str(self.artist_id),
+            "earnings":self.artist.earnings,
             "artist_name":self.artist.full_name,
             "title": self.title,
             "description": self.description,

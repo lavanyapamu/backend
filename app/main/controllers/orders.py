@@ -6,7 +6,8 @@ from app.main.services.orders import (
     get_orders_by_user,
     get_order_by_id,
     update_order_status,
-    delete_order
+    delete_order,
+    get_all_orders
 )
 
 api = OrderDTO.api
@@ -40,3 +41,9 @@ class OrderStatus(Resource):
     def put(self, order_id):
         data = request.get_json()
         return update_order_status(order_id, data['status'])
+    
+@api.route('/all')
+class AllOrders(Resource):
+    def get(self):
+        """Get all orders for artist dashboard"""
+        return get_all_orders()
