@@ -19,7 +19,7 @@ def create_app():
    
     app = Flask(__name__,  static_folder='static', static_url_path='/static')
     app.config.from_object(Config)
-    CORS(app) 
+    CORS(app, supports_credentials=True, expose_headers=["Authorization"]) 
     db.init_app(app)
     mail.init_app(app)
     bcrypt.init_app(app)
@@ -38,7 +38,7 @@ def create_app():
 app = create_app()
 print("ROUTES:")
 for rule in app.url_map.iter_rules():
-         print(rule)
+         print(rule, rule.methods)
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()

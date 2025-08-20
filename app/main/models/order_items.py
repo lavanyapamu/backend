@@ -1,3 +1,4 @@
+from app.main.utils.enums import Orderstatus
 from init_db import db
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
@@ -10,7 +11,7 @@ class OrderItem(db.Model):
     artwork_id = db.Column(UUID(as_uuid=True), db.ForeignKey('artworks.artwork_id'), nullable=False)
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
-
+    status = db.Column(db.Enum(Orderstatus), nullable=False, default=Orderstatus.pending)  # new staus
     order = db.relationship("Order", back_populates="order_items")
     artwork = db.relationship("Artwork", back_populates="order_items")
 
@@ -21,5 +22,6 @@ class OrderItem(db.Model):
             "artwork_id": str(self.artwork_id),
             "quantity": self.quantity,
             "price": self.price,
+            "status": self.status.value,
             "artwork": self.artwork.to_dict() if self.artwork else None
         }

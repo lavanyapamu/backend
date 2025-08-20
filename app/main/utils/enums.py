@@ -13,6 +13,8 @@ class Orderstatus(Enum):
     shipped = 'shipped'
     delivered= 'delivered'
     cancelled= 'cancelled'
+    returned='returned'
+    refunded = 'refunded'
     failed = 'failed'
 
 class PaymentStatus(Enum):

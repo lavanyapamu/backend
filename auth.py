@@ -99,6 +99,7 @@ def login():
         identity={
         'user_id': str(user.user_id),
         'role_id': user.role_id,
+         "role": user.role.role_name.lower() ,
         
     }, expires_delta=timedelta(days=30) )
     print(access_token)
@@ -107,6 +108,7 @@ def login():
         'token': access_token,
         'user_id': str(user.user_id),
         'role_id': user.role_id,
+        'role':user.role.role_name
       
     }), 200
 

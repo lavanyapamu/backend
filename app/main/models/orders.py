@@ -24,14 +24,29 @@ class Order(db.Model):
     def __repr__(self):
         return f"<Order {self.order_id} - User {self.user_id} - Status {self.status.value}>"
 
-    def to_dict(self):
-        return {
+   # in Order model
+    def to_dict(self, artist_id=None):
+    # Filter order items: either all, or just this artist’s
+     filtered_items = [
+        item for item in self.order_items
+        if not artist_id or (item.artwork and item.artwork.artist_id == artist_id)
+     ]
+
+    # Calculate totals only for these filtered items
+     total_quantity = sum(item.quantity for item in filtered_items)
+     artwork_titles = [item.artwork.title for item in filtered_items if item.artwork]
+     filtered_total_price = sum(item.price * item.quantity for item in filtered_items)
+
+     return {
             "order_id": str(self.order_id),
-            "user_name":self.user.full_name,
+            "user_name": self.user.full_name,
+            "quantity": total_quantity,
+            "artwork_titles": artwork_titles,
             "user_id": str(self.user_id),
-            "total_price": self.total_price,
+            # ✅ total only for this artist’s artworks
+            "total_price": filtered_total_price,
             "status": self.status.value,
-            "items": [item.to_dict() for item in self.order_items],
+            "items": [item.to_dict() for item in filtered_items],
             "payment": self.payment.to_dict() if self.payment else None,
             "created_at": self.order_date.isoformat(),
             "updated_at": self.updated_at.isoformat()
