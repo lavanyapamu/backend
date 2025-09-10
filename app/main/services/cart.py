@@ -15,16 +15,19 @@ def get_all_cart_items():
         raise e
 
 def get_cart_items_by_user(user_id):
-    """Get all cart items for a specific user"""
+    """Get all cart items for a specific user, with artwork details + stock"""
     try:
         cart_items = Cart.query.filter_by(user_id=user_id).all()
         result = []
         
         for item in cart_items:
             # Get artwork details
-            artwork = Artwork.query.filter_by(artwork_id=item.artwork_id, is_deleted=False).first()
+            artwork = Artwork.query.filter_by(
+                artwork_id=item.artwork_id,
+                is_deleted=False
+            ).first()
+
             if artwork:
-                
                 item_dict = {
                     'cart_id': item.cart_id,
                     'user_id': str(item.user_id),
@@ -38,7 +41,9 @@ def get_cart_items_by_user(user_id):
                         'category': artwork.category_name.name if artwork.category_name else None,
                         'style': artwork.style.name if artwork.style else None,
                         'image': artwork.art_image,
-                        'artist_id': str(artwork.artist_id)
+                        'artist_id': str(artwork.artist_id),
+                        # ✅ expose available stock to frontend
+                        'stock': artwork.quantity
                     }
                 }
                 result.append(item_dict)
@@ -50,27 +55,50 @@ def get_cart_items_by_user(user_id):
         raise e
 
 def add_to_cart(data):
-    """Add an item to cart"""
+    """Add an item to cart with stock validation (Artwork.quantity as stock)"""
     try:
-        # Check if item already exists in cart
+        # Basic input guard
+        if not data.get('user_id') or not data.get('artwork_id'):
+            return {"error": "user_id and artwork_id are required"}, 400
+
+        # Find artwork
+        artwork = Artwork.query.filter_by(
+            artwork_id=data['artwork_id'],
+            is_deleted=False
+        ).first()
+        if not artwork:
+            return {"error": "Artwork not found"}, 404
+
+        # Quantity requested (defaults to 1 on add-to-cart click)
+        requested_qty = data.get('quantity', 1)
+        if not isinstance(requested_qty, int) or requested_qty <= 0:
+            return {"error": "quantity must be a positive integer"}, 400
+
+        # Validate against available stock
+        if requested_qty > artwork.quantity:
+            return {"error": f"Only {artwork.quantity} items left in stock"}, 400
+
+        # Check if item already in cart
         existing_item = Cart.query.filter_by(
             user_id=data['user_id'],
             artwork_id=data['artwork_id']
         ).first()
-        
+
         if existing_item:
-            # Update quantity if item already exists
-            existing_item.quantity += data.get('quantity', 1)
-            existing_item.updated_at = datetime.now(timezone.utc)
+            new_qty = existing_item.quantity + requested_qty
+            if new_qty > artwork.quantity:
+                return {"error": f"Only {artwork.quantity} items left in stock"}, 400
+            existing_item.quantity = new_qty
+            # Do not touch updated_at (your model doesn't have it)
             db.session.commit()
             return existing_item
-        
+
         # Create new cart item
         new_item = Cart(
             user_id=data['user_id'],
             artwork_id=data['artwork_id'],
-            quantity=data.get('quantity', 1),
-            price=data['price'],
+            quantity=requested_qty,
+            price=data['price'],  # if you prefer, you can pull price from Artwork here
             added_at=datetime.now(timezone.utc)
         )
         
@@ -84,16 +112,30 @@ def add_to_cart(data):
         raise e
 
 def update_cart_item_quantity(cart_id, quantity):
-    """Update quantity of a cart item"""
+    """Update quantity of a cart item with stock validation"""
     try:
+        if not isinstance(quantity, int) or quantity <= 0:
+            return {"error": "quantity must be a positive integer"}, 400
+
         cart_item = Cart.query.get(cart_id)
-        if cart_item:
-            cart_item.quantity = quantity
-            cart_item.updated_at = datetime.now(timezone.utc)
-            db.session.commit()
-            return cart_item
-        return None
-        
+        if not cart_item:
+            return None
+
+        artwork = Artwork.query.filter_by(
+            artwork_id=cart_item.artwork_id,
+            is_deleted=False
+        ).first()
+        if not artwork:
+            return {"error": "Artwork not found"}, 404
+
+        # Validate against stock (Artwork.quantity)
+        if quantity > artwork.quantity:
+            return {"error": f"Only {artwork.quantity} items available"}, 400
+
+        cart_item.quantity = quantity
+        # Do not touch updated_at (your model doesn't have it)
+        db.session.commit()
+        return cart_item
     except SQLAlchemyError as e:
         db.session.rollback()
         current_app.logger.error(f"Error updating cart item {cart_id}: {e}")
@@ -130,7 +172,7 @@ def get_cart_total(user_id):
     """Get total price of items in user's cart"""
     try:
         cart_items = Cart.query.filter_by(user_id=user_id).all()
-        total = sum(item.price * item.quantity for item in cart_items)
+        total = sum(float(item.price) * int(item.quantity) for item in cart_items)
         return float(total)
         
     except SQLAlchemyError as e:

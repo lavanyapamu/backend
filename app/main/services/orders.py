@@ -44,9 +44,9 @@ def get_orders_by_user(user_id):
     except SQLAlchemyError as e:
         return {"error": f"Failed to fetch orders: {str(e)}"}, 500
     
-def get_orders_for_artist(artist_id):
+def get_orders_for_artist(artist_id, limit=None):
     try:
-        orders = (
+        query = (
             Order.query
             .join(OrderItem, Order.order_id == OrderItem.order_id)
             .join(Artwork, OrderItem.artwork_id == Artwork.artwork_id)
@@ -56,8 +56,12 @@ def get_orders_for_artist(artist_id):
                 joinedload(Order.user)
             )
             .order_by(Order.order_date.desc())
-            .all()
         )
+
+        if limit:
+            query = query.limit(limit)
+
+        orders = query.all()
 
         if not orders:
             return {
@@ -68,7 +72,7 @@ def get_orders_for_artist(artist_id):
         orders_list = []
         for order in orders:
             order_dict = order.to_dict(artist_id=artist_id)
-            if order_dict["items"]:  # only include if artist has items
+            if order_dict["items"]:
                 orders_list.append(order_dict)
 
         return {
@@ -134,19 +138,27 @@ def update_overall_order_status(order_id):
     if not order:
         return {"error": "Order not found"}, 404
 
-    item_statuses = [item.status for item in order.order_items]
+    # item_statuses = [item.status for item in order.order_items]
+    item_statuses = [
+        item.status.value if isinstance(item.status, Orderstatus) else str(item.status).lower()
+        for item in order.order_items
+    ]
 
-    if all(status == Orderstatus.cancelled for status in item_statuses):
-        order.status = Orderstatus.cancelled
-    elif all(status == Orderstatus.delivered for status in item_statuses):
-        order.status = Orderstatus.delivered
-    elif all(status == Orderstatus.shipped for status in item_statuses):
-        order.status = Orderstatus.shipped
-    elif all(status == Orderstatus.confirmed for status in item_statuses):
-        order.status = Orderstatus.confirmed
+
+     # Determine overall status
+    if all(s == 'cancelled' for s in item_statuses):
+        new_status = 'cancelled'
+    elif all(s == 'delivered' for s in item_statuses):
+        new_status = 'delivered'
+    elif all(s == 'shipped' for s in item_statuses):
+        new_status = 'shipped'
+    elif all(s == 'confirmed' for s in item_statuses):
+        new_status = 'confirmed'
     else:
-        order.status = Orderstatus.pending  # mixed statuses
+        new_status = 'pending'  # mixed statuses
 
+    # Save string to DB
+    order.status = new_status
     order.updated_at = datetime.utcnow()
     db.session.commit()
 

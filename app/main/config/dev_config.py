@@ -12,6 +12,7 @@ host=os.getenv("DB_HOST")
 
 class Config:
     SQLALCHEMY_DATABASE_URI=f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+    
     SECRET_KEY = os.getenv('SECRET_KEY')
     SQLALCHEMY_ENGINE_OPTIONS ={
         "connect_args":{

@@ -11,19 +11,20 @@ class Cart(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Float, nullable=False)
     added_at = db.Column(db.DateTime, default=datetime.utcnow)
-
+    
     user = db.relationship("User", back_populates="cart")
     artwork = db.relationship("Artwork", lazy=True)
 
     def __repr__(self):
         return f"<Cart {self.cart_id} - User {self.user_id} - Artwork {self.artwork_id} - Qty {self.quantity}>"
 
-def to_dict(self):
-        return {
-            "cart_id": self.cart_id,
-            "user_id": str(self.user_id),
-            "artwork_id": str(self.artwork_id),
-            "quantity": self.quantity,
-            "price": self.price,
-            "added_at": self.added_at.isoformat()
-        }
+    def to_dict(self):
+            return {
+                "cart_id": self.cart_id,
+                "user_id": str(self.user_id),
+                "artwork_id": str(self.artwork_id),
+                "quantity": self.quantity,
+                "price": self.price,
+                "added_at": self.added_at.isoformat(),
+                "stock": self.artwork.quantity if self.artwork else None 
+            }

@@ -2,11 +2,11 @@
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 import os
-
+from werkzeug.security import check_password_hash
 from flask import app, request
 from app.main.models.user import User
 from init_db import db, bcrypt
-
+from werkzeug.security import generate_password_hash
 
 def get_all_users():
     users = User.query.filter_by(is_deleted=False).all()
@@ -68,10 +68,10 @@ def change_password(user_id, old_password, new_password):
     if not user:
         return {"error": "User not found."}, 404
 
-    if not bcrypt.check_password_hash(user.password, old_password):
+    if not check_password_hash(user.password, old_password):
         return {"error": "Old password is incorrect."}, 400
-
-    user.password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+    
+    user.password = generate_password_hash(new_password, method="scrypt")
     user.updated_at = datetime.now(timezone.utc)
     db.session.commit()
 

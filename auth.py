@@ -96,10 +96,10 @@ def login():
 
     
     access_token = create_access_token(
-        identity={
-        'user_id': str(user.user_id),
-        'role_id': user.role_id,
-         "role": user.role.role_name.lower() ,
+         identity=str(user.user_id),  # must be a string
+    additional_claims={
+        "role_id": user.role_id,
+        "role": user.role.role_name.lower(),
         
     }, expires_delta=timedelta(days=30) )
     print(access_token)

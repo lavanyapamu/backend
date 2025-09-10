@@ -33,13 +33,15 @@ class UserOrders(Resource):
     
 @api.route('/artist-orders/<uuid:artist_id>')
 class ArtistOrders(Resource):
-    @jwt_required() 
+    @jwt_required()
     def get(self, artist_id):
         """
-        Get all orders for a given artist
+        Get all orders (or limited recent orders) for a given artist
         """
-        response, status_code = get_orders_for_artist(artist_id)
+        limit = request.args.get("limit", type=int)
+        response, status_code = get_orders_for_artist(artist_id, limit)
         return response, status_code
+
 
 
 @api.route('/<uuid:order_id>')

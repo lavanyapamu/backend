@@ -1,7 +1,7 @@
 from init_db import db
-from app.main.utils.enums import Userstatus, Orderstatus, PaymentStatus
-from datetime import datetime,timezone
-from sqlalchemy.dialects.postgresql import UUID,ENUM
+from app.main.utils.enums import Userstatus
+from datetime import datetime
+from sqlalchemy.dialects.postgresql import UUID
 import uuid
 
 class User(db.Model):

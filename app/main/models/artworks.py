@@ -47,5 +47,6 @@ class Artwork(db.Model):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "image": self.art_image,
+            
             "is_deleted": self.is_deleted
         }

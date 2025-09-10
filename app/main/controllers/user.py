@@ -31,24 +31,25 @@ class AllUsers(Resource):
 class UserById(Resource):
    @jwt_required()
    def get(self, user_id):
-        identity = get_jwt_identity()
-        current_user_id = str(identity['user_id'])
-        current_user_role_id = identity['role_id']
+    current_user_id = get_jwt_identity()  # this is the user_id (string)
+    claims = get_jwt()
+    current_user_role_id = claims["role_id"]
+    
 
         # If you need role name, look it up:
-        role_name = None
-        if current_user_role_id == 1:
+    role_name = None
+    if current_user_role_id == 1:
             role_name = 'Admin'
-        elif current_user_role_id == 2:
+    elif current_user_role_id == 2:
             role_name = 'Artist'
-        else:
+    else:
             role_name = 'User'
 
-        user = get_user_by_id(current_user_id, user_id, role_name)
-        if not user:
+    user = get_user_by_id(current_user_id, user_id, role_name)
+    if not user:
             return {"error": "Not found or unauthorized"}, 404
-        print("📷 Backend sending image filename:", user.get('profile_image'))
-        return user, 200
+    print("📷 Backend sending image filename:", user.get('profile_image'))
+    return user, 200
 
 
    @jwt_required()
@@ -66,7 +67,9 @@ class UserById(Resource):
 class UserChangePassword(Resource):
     @jwt_required()
     def patch(self, user_id):
-        current_user_id = str(get_jwt_identity())
+        identity = get_jwt_identity()   # this is a dict
+        current_user_id = str(identity.get("user_id"))
+        
         if current_user_id != str(user_id):
             return {"error": "Unauthorized"}, 403
 

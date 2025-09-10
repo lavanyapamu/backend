@@ -3,11 +3,13 @@ from flask_cors import cross_origin
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_restx import Resource
 from app.main.dto.artworks import ArtworkDTO
+from app.main.models.artworks import CategoryName, StyleType
 from app.main.services.artworks import (
     add_artwork,
     get_all_artworks,
     get_artwork_by_id,
     get_artworks_by_artist,
+    get_filters,
     update_artwork,
     soft_delete_artwork
 )
@@ -73,3 +75,11 @@ class ArtworksByArtist(Resource):
     @jwt_required() 
     def get(self, artist_id):
         return get_artworks_by_artist(artist_id)
+
+@artwork_ns.route("/filters")
+class ArtworkFilters(Resource):
+    def get(self):
+        """
+        Return available categories and styles
+        """
+        return get_filters()

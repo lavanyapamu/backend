@@ -23,8 +23,11 @@ def create_order_item(order_id, artwork_id, quantity):
             price=artwork.price  # snapshot the artwork price at time of order
         )
         db.session.add(new_item)
+        artwork.quantity -= quantity
         db.session.commit()
-        return {"message": "Order item created", "order_item_id": str(new_item.order_item_id)}, 201
+        return {"message": "Order item created", 
+                "order_item_id": str(new_item.order_item_id), 
+                "remaining_stock": artwork.quantity}, 201
 
     except SQLAlchemyError as e:
         db.session.rollback()

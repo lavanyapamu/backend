@@ -1,7 +1,10 @@
 from datetime import datetime, timezone
 import uuid
-from app.main.models.artworks import Artwork, CategoryName, StyleType
+from app.main.models.artworks import Artwork
+from app.main.utils.enums import CategoryName, StyleType, Orderstatus
+
 from app.main.models.user import User
+
 from init_db import db
 from sqlalchemy import or_, asc, desc
 from werkzeug.utils import secure_filename
@@ -179,3 +182,9 @@ def get_artworks_by_artist(artist_id):
 
     return [a.to_dict() for a in artworks], 200
    
+def get_filters():
+    return {
+        "categories": [c.value for c in CategoryName],
+        "styles": [s.value for s in StyleType],
+        "statuses": [s.value for s in Orderstatus] 
+    }, 200
