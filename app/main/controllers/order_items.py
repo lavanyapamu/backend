@@ -45,4 +45,5 @@ class OrderItemStatus(Resource):
         if not data or "status" not in data:
             return {"error": "Missing 'status' in request body"}, 400
 
+        # Call service with the new status
         return update_order_item_status(order_item_id, data["status"])

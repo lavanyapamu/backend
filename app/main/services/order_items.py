@@ -1,4 +1,4 @@
-from flask_jwt_extended import get_jwt_identity
+from flask_jwt_extended import get_jwt, get_jwt_identity
 from app.main.models.artworks import Artwork
 from app.main.models.order_items import OrderItem
 from app.main.models.user import User
@@ -60,8 +60,8 @@ def update_order_item_status(order_item_id, new_status):
     Adjust earnings and sales count for delivered/returned/refunded.
     Automatically recalculates overall order status.
     """
-    identity = get_jwt_identity()
-    user_id = identity["user_id"]
+    # Get user_id from identity (string)
+    user_id = get_jwt_identity()
     user = User.query.get(user_id)
 
     if not isinstance(new_status, str):
@@ -72,26 +72,31 @@ def update_order_item_status(order_item_id, new_status):
     if new_status not in allowed_statuses:
         return {"error": f"Invalid status. Must be one of {allowed_statuses}"}, 400
 
+    # Fetch the order item
     item = OrderItem.query.get(order_item_id)
     if not item:
         return {"error": "Order item not found"}, 404
 
-    role = user.role.role_name.lower()
-    if role == "artist" and user.user_id != item.artwork.artist_id:
+    # Get role from JWT claims
+    claims = get_jwt()
+    role = claims["role"].lower()
+
+    # Authorization check
+    if role == "artist" and user_id != str(item.artwork.artist_id):
         return {"error": "Unauthorized to update this item"}, 403
 
     try:
-        old_status = item.status.value if isinstance(item.status, Orderstatus) else str(item.status).lower()
+        old_status = item.status.value.lower() if isinstance(item.status, Orderstatus) else str(item.status).lower()
         item.status = Orderstatus[new_status]
 
-        # Handle delivered → update earnings & sales count
+        # Delivered → update earnings & sales
         if old_status != "delivered" and new_status == "delivered":
             artist = item.artwork.artist
             total_price = item.price * item.quantity
             artist.earnings = (artist.earnings or 0) + total_price
             item.artwork.sales_count = (item.artwork.sales_count or 0) + item.quantity
 
-        # Handle returned/refunded
+        # Returned/refunded → adjust earnings & sales
         elif old_status == "delivered" and new_status in ["returned", "refunded"]:
             artist = item.artwork.artist
             total_price = item.price * item.quantity
