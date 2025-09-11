@@ -66,7 +66,9 @@ def get_orders_for_artist(artist_id, limit=None):
         if not orders:
             return {
                 "message": "No orders found for this artist",
-                "orders": []
+                "orders": [],
+                "count": 0,
+                "earnings": 0
             }, 200
 
         orders_list = []
@@ -74,11 +76,13 @@ def get_orders_for_artist(artist_id, limit=None):
             order_dict = order.to_dict(artist_id=artist_id)
             if order_dict["items"]:
                 orders_list.append(order_dict)
-
+        artist = User.query.get(artist_id)
         return {
             "message": "Artist orders fetched successfully",
             "orders": orders_list,
-            "count": len(orders_list)
+            "count": len(orders_list),
+             "count": len(orders_list),
+            "earnings": artist.earnings if artist and artist.earnings else 0
         }, 200
 
     except SQLAlchemyError as e:

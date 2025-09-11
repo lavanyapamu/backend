@@ -1,53 +1,52 @@
 from app.main.models.reviews import Review
+from app.main.models.orders import Order
 from init_db import db
 from sqlalchemy.exc import SQLAlchemyError
 
+
 def create_review(data):
     try:
+        user_id = data.get("user_id")
+        artwork_id = data.get("artwork_id")
+        rating = data.get("rating")
+        review_text = data.get("review_text", "No review provided")
+
+        if not user_id or not artwork_id or not rating:
+            return {"message": "user_id, artwork_id and rating are required"}, 400
+
+        # ✅ Ensure order exists and delivered
+        order = (
+            Order.query.filter_by(user_id=user_id, artwork_id=artwork_id, status="DELIVERED")
+            .first()
+        )
+        if not order:
+            return {"message": "User can only review artworks they purchased and received"}, 403
+
+        # ✅ Prevent duplicate review
+        existing = Review.query.filter_by(user_id=user_id, artwork_id=artwork_id).first()
+        if existing:
+            return {"message": "You have already reviewed this artwork"}, 409
+
+        # ✅ Save review
         review = Review(
-            user_id=data["user_id"],
-            artwork_id=data["artwork_id"],
-            rating=data["rating"],
-            review_text=data.get("review_text", "No review provided")
+            user_id=user_id,
+            artwork_id=artwork_id,
+            rating=rating,
+            review_text=review_text,
         )
         db.session.add(review)
         db.session.commit()
         return review.to_dict(), 201
+
     except SQLAlchemyError as e:
         db.session.rollback()
         return {"message": str(e)}, 500
 
-def get_all_reviews():
-    reviews = Review.query.all()
-    return [r.to_dict() for r in reviews], 200
 
-def get_review_by_id(review_id):
-    review = Review.query.get(review_id)
-    if not review:
-        return {"message": "Review not found"}, 404
-    return review.to_dict(), 200
-
-def update_review(review_id, data):
-    review = Review.query.get(review_id)
-    if not review:
-        return {"message": "Review not found"}, 404
+def get_reviews_for_artwork(artwork_id):
     try:
-        review.rating = data.get("rating", review.rating)
-        review.review_text = data.get("review_text", review.review_text)
-        db.session.commit()
-        return review.to_dict(), 200
-    except SQLAlchemyError as e:
-        db.session.rollback()
-        return {"message": str(e)}, 500
-
-def delete_review(review_id):
-    review = Review.query.get(review_id)
-    if not review:
-        return {"message": "Review not found"}, 404
-    try:
-        db.session.delete(review)
-        db.session.commit()
-        return {"message": "Review deleted successfully"}, 200
+        reviews = Review.query.filter_by(artwork_id=artwork_id).all()
+        return [r.to_dict() for r in reviews], 200
     except SQLAlchemyError as e:
         db.session.rollback()
         return {"message": str(e)}, 500

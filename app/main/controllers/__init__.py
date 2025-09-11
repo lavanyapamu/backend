@@ -8,7 +8,7 @@ from app.main.controllers.wishlist import api as wishlist_ns
 from app.main.controllers.orders import api as orders_ns 
 from app.main.controllers.order_items import api as order_items_ns
 from app.main.controllers.payments import api as payments_ns 
-
+from app.main.controllers.reviews import reviews_ns
 blueprint = Blueprint("api", __name__)
 api = Api(blueprint, title="ArtFlare API", version="1.0", description="ArtFlare Backend API")
 
@@ -17,7 +17,7 @@ api.add_namespace(orders_ns)
 api.add_namespace(order_items_ns)
 api.add_namespace(cart_ns ,path='/cart')
 api.add_namespace(wishlist_ns)
-# api.add_namespace(reviews_ns)
+api.add_namespace(reviews_ns, path='/reviews')
 api.add_namespace(payments_ns)
 api.add_namespace(user_ns, path="/users")
 
