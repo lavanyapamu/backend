@@ -1,8 +1,11 @@
 from app.main.models.reviews import Review
 from app.main.models.orders import Order
+from app.main.utils.enums import Orderstatus
 from init_db import db
 from sqlalchemy.exc import SQLAlchemyError
 
+
+from app.main.models.order_items import OrderItem
 
 def create_review(data):
     try:
@@ -16,9 +19,15 @@ def create_review(data):
 
         # ✅ Ensure order exists and delivered
         order = (
-            Order.query.filter_by(user_id=user_id, artwork_id=artwork_id, status="DELIVERED")
+            Order.query
+            .filter(
+                Order.user_id == user_id,
+                Order.status == Orderstatus.delivered
+            )
+            .filter(Order.order_items.any(artwork_id=artwork_id))
             .first()
         )
+
         if not order:
             return {"message": "User can only review artworks they purchased and received"}, 403
 
@@ -40,7 +49,15 @@ def create_review(data):
 
     except SQLAlchemyError as e:
         db.session.rollback()
+        print(f"[SQLAlchemyError] {str(e)}")  # 👈 print for logs
         return {"message": str(e)}, 500
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"[UnexpectedError] {str(e)}")  # 👈 catch all other errors
+        return {"message": str(e)}, 500
+
+
 
 
 def get_reviews_for_artwork(artwork_id):

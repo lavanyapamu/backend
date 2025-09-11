@@ -1,6 +1,7 @@
-from flask_jwt_extended import jwt_required
 from flask_restx import Resource
 from flask import request
+from flask_jwt_extended import jwt_required
+
 from app.main.dto.reviews import ReviewtDTO
 from app.main.services.reviews import create_review, get_reviews_for_artwork
 
@@ -20,7 +21,7 @@ class ReviewList(Resource):
 
 @reviews_ns.route("/artwork/<string:artwork_id>")
 class ArtworkReviews(Resource):
-    @jwt_required()
+    @jwt_required(optional=True)   # reviews can be public read
     def get(self, artwork_id):
         """
         Get all reviews for a specific artwork

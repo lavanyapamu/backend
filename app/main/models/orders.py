@@ -46,6 +46,7 @@ class Order(db.Model):
             # ✅ total only for this artist’s artworks
             "total_price": filtered_total_price,
             "status": self.status.value,
+            "artwork_ids": [str(item.artwork_id) for item in filtered_items], 
             "items": [item.to_dict() for item in filtered_items],
             "payment": self.payment.to_dict() if self.payment else None,
             "created_at": self.order_date.isoformat(),
